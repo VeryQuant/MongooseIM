@@ -192,10 +192,13 @@ jobs:
           command: |
             # tools/travis-setup-db.sh
             # if [ $PRESET = ldap_mnesia ]; then sudo tools/travis-setup-ldap.sh; fi
+            sudo apt-get update && sudo apt-get install socat -y
             echo '127.0.0.1 muc.localhost' | sudo tee -a /etc/hosts
       - run:
           name: Run Big Tests
           command: |
+            nohup socat tcp-listen:6379,reuseaddr,fork tcp:mongooseim-redis:6379 >runlong.out 2>runlong.err &
+            nohup socat tcp-listen:5672,reuseaddr,fork tcp:mongooseim-rmq:5672 >runlong.out 2>runlong.err &
             SKIP_AUTO_COMPILE=true KEEP_COVER_RUNNING=1 ./tools/travis-test.sh -p $PRESET -s false
           no_output_timeout: 40m
       - fetch_coverage_packages
